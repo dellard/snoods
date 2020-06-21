@@ -64,6 +64,8 @@ class SnoodsClient(threading.Thread):
         # but this *must* be after this thread is started!
 
     def stop(self):
+        """ Mark this thread as stopped """
+
         self.do_run = False
 
     def apply_msg(self, msg):

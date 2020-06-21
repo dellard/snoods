@@ -59,8 +59,14 @@ class Stylus(object):
         self.color = self.drawable.active_lwidth
         self.points = None
         self.group_item = None
+        self.lwidth = 0
 
     def activate(self):
+        """
+        Set the bindings to deal with "freehand drawing"
+        actions: middle button down, motion, and middle
+        button up
+        """
 
         # TODO: need to record the old bindings,
         # so we can restore them when deactivating
@@ -72,13 +78,9 @@ class Stylus(object):
         self.drawable.canvas.bind(
                 '<ButtonRelease-2>', self.makeup())
 
-    def deactivate(self):
-        # TODO: restore previous bindings,
-        # if applicable
-        #
-        pass
-
     def makedown(self):
+        """ Return the callback for a mouse-2-down event """
+
         def callback(event):
             self.prev_x, self.prev_y = event.x, event.y
             self.color = self.drawable.active_color[0]
@@ -89,6 +91,8 @@ class Stylus(object):
         return callback
 
     def makemove(self):
+        """ Return the callback for a mouse-2-motion event """
+
         def callback(event):
             item = self.drawable.canvas.create_line(
                     (self.prev_x, self.prev_y, event.x, event.y),
@@ -105,7 +109,9 @@ class Stylus(object):
         return callback
 
     def makeup(self):
-        def callback(event):
+        """ Return the callback for the mouse-2-release event """
+
+        def callback(_event):
 
             viob_id = SnoodsProtocol.create_viob_id()
             self.drawable.register_obj(self.group_item, viob_id)
@@ -117,6 +123,10 @@ class Stylus(object):
         return callback
 
     def push_freehand(self, viob_id, points, color, lwidth, remote=False):
+        """
+        Push a freehand drawing event to the remote,
+        if there is one
+        """
 
         points = [(p[0], self.drawable.flip_y(p[1])) for p in self.points]
         points_str = ' '.join(['%x,%x' % (p[0], p[1]) for p in points])
@@ -126,6 +136,9 @@ class Stylus(object):
                     viob_id, points_str, color, lwidth)
 
     def apply_newfre(self, viob_id, points_str, lwidth, color):
+        """
+        Apply a freehand drawing message received from the remote
+        """
 
         if viob_id in self.drawable.viob_id2item:
             # we already have this viob; no need to create it
@@ -259,7 +272,7 @@ class SnoodsDrawableTk(object):
         self.stylus = Stylus(self)
         self.stylus.activate()
 
-        shift = SnoodsShiftCursor(self.canvas)
+        SnoodsShiftCursor(self.canvas)
 
     def make_rect_button(self):
         """
@@ -406,7 +419,7 @@ class SnoodsDrawableTk(object):
             """ Create the callback to clear the text entry area """
 
             def callback():
-                text = text_entry.delete(1.0, tk.END)
+                text_entry.delete(1.0, tk.END)
             return callback
 
         text_button = tk.Button(
@@ -474,7 +487,7 @@ class SnoodsDrawableTk(object):
 
         row = 0
         column = 0
-        for i, color_opt in enumerate(color_opts):
+        for _i, color_opt in enumerate(color_opts, 1):
             bg_col, fg_col = color_opt
 
             button = tk.Button(
@@ -490,7 +503,7 @@ class SnoodsDrawableTk(object):
 
         row = 0
         column = 1
-        for i, size_opt in enumerate(size_opts):
+        for _i, size_opt in enumerate(size_opts):
             name, size = size_opt
 
             button = tk.Button(

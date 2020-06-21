@@ -118,6 +118,11 @@ class SnoodsProtocol(object):
         return msgs_text
 
     def recv_msgs(self):
+        """
+        Receive as many messages as are available from self.sock
+        (or as many as will fit in a single recv() call, and update
+        the local state for this socket.
+        """
 
         try:
             new_buf = self.sock.recv(8129)
@@ -137,6 +142,11 @@ class SnoodsProtocol(object):
         return msgs_text
 
     def parse_msg(self, text):
+        """
+        Parse a single message into a dictionary that can
+        be passed to the handler for the corresponding
+        message type
+        """
 
         msg = dict()
         fields = [s.decode('utf-8') for s in text.split(b'/')]
@@ -191,6 +201,8 @@ class SnoodsProtocol(object):
         return msg
 
     def push_erase(self, viob_id):
+        """ Push an erase message """
+
         e_viob_id = SnoodsProtocol.escape_str(str(viob_id))
 
         msg = '<erase/%s' % e_viob_id
@@ -199,6 +211,8 @@ class SnoodsProtocol(object):
         self.sock.send(msg + SnoodsProtocol.recsep)
 
     def push_color_update(self, viob_id, color):
+        """ Push a color update message """
+
         e_viob_id = SnoodsProtocol.escape_str(str(viob_id))
         e_color = SnoodsProtocol.escape_str(color)
 
@@ -208,6 +222,8 @@ class SnoodsProtocol(object):
         self.sock.send(msg + SnoodsProtocol.recsep)
 
     def push_position_update(self, viob_id, ll_x, ll_y, ur_x, ur_y):
+        """ Push a position update message """
+
         e_viob_id = SnoodsProtocol.escape_str(str(viob_id))
 
         msg = '<posupd/%s/%d/%d/%d/%d' % (
@@ -217,6 +233,8 @@ class SnoodsProtocol(object):
         self.sock.send(msg + SnoodsProtocol.recsep)
 
     def push_create_rect(self, viob_id, ll_x, ll_y, ur_x, ur_y, bg_color):
+        """ Push a create rectangle message """
+
         e_viob_id = SnoodsProtocol.escape_str(str(viob_id))
         e_bg_color = SnoodsProtocol.escape_str(bg_color)
 
@@ -229,6 +247,8 @@ class SnoodsProtocol(object):
     def push_create_text(
             self, viob_id, ll_x, ll_y, text,
             fg_color, font, size, weight):
+        """ Push a create text message """
+
         e_viob_id = SnoodsProtocol.escape_str(str(viob_id))
         e_fg_color = SnoodsProtocol.escape_str(fg_color)
         e_font = SnoodsProtocol.escape_str(font)
@@ -245,6 +265,10 @@ class SnoodsProtocol(object):
         self.sock.send(msg + SnoodsProtocol.recsep)
 
     def push_freehand(self, viob_id, point_str, fg_color, lwidth):
+        """
+        Push a freehand drawing message
+        """
+
         e_viob_id = SnoodsProtocol.escape_str(str(viob_id))
         e_fg_color = SnoodsProtocol.escape_str(fg_color)
 
