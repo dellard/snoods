@@ -1,0 +1,5 @@
+This file contains a list of people who have made significant
+contributions to the open-source version of snoods.
+
+Original author:
+    Daniel Ellard <ellard@gmail.com>
