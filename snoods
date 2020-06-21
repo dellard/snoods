@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+#
+# Copyright 2020 - Daniel Ellard <ellard@gmail.com>
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived from
+#    this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+"""
+Convenience class/wrapper to run either the snoods
+client or server, depending on the commandline
+"""
+
+import argparse
+import sys
+
+from client import SnoodsClient
+from protocol import SnoodsProtocol
+from server import SnoodsServer
+
+
+class Snoods(object):
+    """
+    Wrapper for the snoods client and server
+
+    Parses the commandline to decide whether to run the
+    client or server
+    """
+
+    def __init__(self, argv):
+        args = self.parse_args(argv)
+
+        if args.server:
+            self.server(args.port, args.msg_file)
+        else:
+            self.client(args.port)
+
+    def parse_args(self, argv):
+        """
+        Parse the commandline and/or provide help to the user
+        """
+
+        def_port = 6540
+        def_msg_file = None
+
+        parser = argparse.ArgumentParser(
+                description='Run snoods (client or server)')
+
+        parser.add_argument(
+                '-S', '--server', default=False, action='store_true',
+                help='Run the server instead of a client')
+
+        parser.add_argument(
+                '-p', '--port', default=def_port, type=int,
+                help='Server port [default=%d]' % def_port)
+
+        parser.add_argument(
+                '-m', '--msg_file', default=None,
+                help='File of initial messages [default=%s]' % def_msg_file)
+
+        args = parser.parse_args(argv[1:])
+
+        # put the progname into the args namespace, for convenience
+        #
+        args.progname = argv[0]
+
+        return args
+
+    def server(self, listen_port, msg_fname):
+        """
+        Run the snoods server
+        """
+
+        if msg_fname:
+            msg_history = SnoodsProtocol.msgs_from_file(msg_fname)
+            print(msg_history)
+        else:
+            msg_history = list()
+
+        server = SnoodsServer(
+                ('127.0.0.1', listen_port), msg_history=msg_history)
+        server.start()
+        server.join()
+
+    def client(self, connect_port):
+        """
+        Run the snoods client
+        """
+
+        client = SnoodsClient(('127.0.0.1', connect_port))
+        client.start()
+
+        client.drawable.main()
+        client.stop()
+        client.join()
+        sys.exit(0)
+
+
+if __name__ == '__main__':
+    sys.exit(Snoods(sys.argv))
