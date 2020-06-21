@@ -71,7 +71,7 @@ class SnoodsShiftCursor(object):
         Handle shift-pressed events
         """
 
-        def callback(event):
+        def callback(_event):
             """ callback for shift-pressed """
             self.is_down = True
             self.canvas.configure(cursor=self.down_cursor)
@@ -83,7 +83,7 @@ class SnoodsShiftCursor(object):
         Handle shift-released events
         """
 
-        def callback(event):
+        def callback(_event):
             """ callback for shift-released """
             self.is_down = False
             self.canvas.configure(cursor=self.up_cursor)
