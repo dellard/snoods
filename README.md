@@ -1,11 +1,24 @@
-# Installing and running snoods
+# snoods - a Simple shared whiteboard app 
 
-## Prerequisites
+## Description
+
+__snoods__ provides the functionality of a shared "whiteboard":
+users on different computers can draw, write, and make other changes
+to their virtual whiteboard, and those changes will appear immediately
+on the whiteboards of everyone else attached to the same whiteboard.
+
+__snoods__ provides some extensions to a real whiteboard: users can
+move text or drawings after they've been placed on the whiteboard,
+and they can change the colors of objects on the whiteboard.
+
+## Installing and running snoods
+
+### Prerequisites
 
 You need to have python3 and python3-tk installed on the client
 and server machines.
 
-## Setting up the server
+### Setting up the server
 
 On the machine you want to use as your server, create a directory for
 the software, and untar the tarball there.  In that directory, execute:
@@ -22,13 +35,13 @@ blackboard is done according to who can access the machine the server
 runs on.  This may be improved in the future, but right now, the
 whiteboard is accessible to all users who can access a machine.
 
-## Setting up the client
+### Setting up the client
 
 On the client, assuming it's a different machine than
 the server host:  create a directory for the software, and untar the
 tarball there.  Don't run anything yet...  Keep reading.
 
-## Creating a tunnel from the client to the server
+### Creating a tunnel from the client to the server
 
 You typically don't want to the run the client on the same machine as
 the server, however, unless you're just trying things out.  (you can run
@@ -41,7 +54,7 @@ a port on your workstation and the machine hosting the server:
 This opens an SSH connection to $SERVERNAME and tunnels port 6540 (the
 default snoods port) to the same port on $SERVERNAME
 
-## Running the client
+### Running the client
 
 To run the client:
 
@@ -69,7 +82,7 @@ then you can move it wherever you prefer.
 
 Any changes you make will appear on every other client.
 
-```
+---
 Copyright 2020 - Daniel Ellard <ellard@gmail.com>
-See LICENSE.txt for the license.
-```
+
+See LICENSE.txt for license information.
