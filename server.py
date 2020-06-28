@@ -79,11 +79,41 @@ class SnoodsServer(threading.Thread):
 
     def init_new_sock(self, new_sock, board_id):
         """
-        Catch up a new sock with the history of messages
+        Initialize the association between a socket and
+        a board_id.
+
+        This includes catching up a new sock with the history
+        of messages
         """
 
+        # If this socket is already bound to a board,
+        # then unbind it
+        #
+        if new_sock in self.sock2board:
+            old_board_id = self.sock2board[new_sock]
+            self.boardid2clients[old_board_id].remove(new_sock)
+
+        # If the board_id has never been seen before,
+        # then create a msg_history and boardid2clients
+        # for it
+        #
         if board_id not in self.msg_history:
             self.msg_history[board_id] = list()
+
+        if board_id not in self.boardid2clients:
+            self.boardid2clients[board_id] = set()
+
+        self.sock2board[new_sock] = board_id
+        self.boardid2clients[board_id].add(new_sock)
+
+        # send the client a board change join message,
+        # to let it know that the board change was
+        # done, and then send it any known history
+        # for the board
+        #
+        msg = '<join/%s' % SnoodsProtocol.escape_str(board_id)
+        msg = msg.encode('utf-8')
+        new_sock.send(msg + SnoodsProtocol.recsep)
 
         for msg in self.msg_history[board_id]:
             new_sock.send(msg + SnoodsProtocol.recsep)
@@ -148,16 +178,9 @@ class SnoodsServer(threading.Thread):
 
                         for msg in msgs:
                             cmd = SnoodsProtocol.parse_msg(msg)
-                            print('cmd is %s' % cmd['command'])
                             if cmd['command'] == '<join':
                                 new_board_id = cmd['board_id']
-                                print('board_id is %s' % new_board_id)
-                                self.sock2board[sock] = new_board_id
-
-                                if new_board_id not in self.boardid2clients:
-                                    self.boardid2clients[new_board_id] = set()
-
-                                self.boardid2clients[new_board_id].add(sock)
+                                self.init_new_sock(sock, new_board_id)
                             else:
                                 all_msgs[board_id].append(msg)
                     else:

@@ -94,6 +94,8 @@ class SnoodsClient(threading.Thread):
             self.drawable.apply_newfre(**msg)
         elif cmd == '<erase':
             self.drawable.apply_erase(**msg)
+        elif cmd == '<join':
+            self.drawable.apply_join(**msg)
 
     def run(self):
 
