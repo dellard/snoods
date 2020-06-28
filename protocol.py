@@ -141,7 +141,8 @@ class SnoodsProtocol(object):
 
         return msgs_text
 
-    def parse_msg(self, text):
+    @staticmethod
+    def parse_msg(text):
         """
         Parse a single message into a dictionary that can
         be passed to the handler for the corresponding
