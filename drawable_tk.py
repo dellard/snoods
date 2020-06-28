@@ -666,6 +666,18 @@ class SnoodsDrawableTk(object):
                 fill=fill_color, font=font_des,
                 anchor=tk.SW, tag='moveable')
 
+    def apply_join(self, command, board_id):
+        """
+        Join a whiteboard
+
+        If there's anything on the default whiteboard (or any
+        other previous whiteboard) then we need to erase it
+        when we join a new whiteboard.  Otherwise our view
+        may be inconsistent with other viewers.
+        """
+
+        self.canvas.delete('all')
+
     def apply_erase(self, command, viob_id):
         """
         Erase a viob_id

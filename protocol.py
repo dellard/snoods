@@ -141,7 +141,8 @@ class SnoodsProtocol(object):
 
         return msgs_text
 
-    def parse_msg(self, text):
+    @staticmethod
+    def parse_msg(text):
         """
         Parse a single message into a dictionary that can
         be passed to the handler for the corresponding
@@ -197,8 +198,24 @@ class SnoodsProtocol(object):
             msg['command'] = fields[0]
             msg['viob_id'] = fields[1]
 
+        elif fields[0] == '<join':
+            msg['command'] = fields[0]
+            msg['board_id'] = SnoodsProtocol.unescape_str(fields[1])
+
+            print('joining %s' % fields[1])
+
         # print(str(msg))
         return msg
+
+    def push_join(self, board_id):
+        """ Send a request to join a specific board, by identifier """
+
+        e_board_id = SnoodsProtocol.escape_str(str(board_id))
+        msg = '<join/%s' % e_board_id
+
+        msg = msg.encode('utf-8')
+        self.sock.send(msg + SnoodsProtocol.recsep)
+        print('asked to join %s' % e_board_id)
 
     def push_erase(self, viob_id):
         """ Push an erase message """
