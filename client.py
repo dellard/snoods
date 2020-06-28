@@ -47,7 +47,7 @@ class SnoodsClient(threading.Thread):
     Create a basic client, with a drawable UI
     """
 
-    def __init__(self, sockaddr, board_id=None):
+    def __init__(self, sockaddr, board_id='default'):
         threading.Thread.__init__(self)
 
         sock = socket.socket()
@@ -55,11 +55,12 @@ class SnoodsClient(threading.Thread):
         sock.settimeout(0.05)
 
         self.wire = SnoodsProtocol(sock)
-
         self.board_id = board_id
-        self.curr_board_id = None
 
-        if board_id:
+        if board_id == 'default':
+            self.curr_board_id = board_id
+        else:
+            self.curr_board_id = None
             self.wire.push_join(board_id)
 
         self.drawable = SnoodsDrawableTk(
@@ -108,7 +109,11 @@ class SnoodsClient(threading.Thread):
         elif cmd == '<erase':
             self.drawable.apply_erase(**msg)
         elif cmd == '<join':
-            self.drawable.apply_join(**msg)
+            # if the current board_id is already the same
+            # as the new board_id, then don't do anything
+            #
+            if self.curr_board_id != msg['board_id']:
+                self.drawable.apply_join(**msg)
 
     def run(self):
 
