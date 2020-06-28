@@ -51,7 +51,7 @@ class SnoodsServer(threading.Thread):
     Thread that runs a Snoods server on a given socket address.
     """
 
-    def __init__(self, sockaddr, msg_history=None):
+    def __init__(self, sockaddr):
 
         threading.Thread.__init__(self)
 
@@ -60,38 +60,43 @@ class SnoodsServer(threading.Thread):
         self.lock = threading.RLock()
         self.all_clients = set()
 
+        self.boardid2clients = dict()
+        self.boardid2clients['default'] = set()
+        self.sock2board = dict()
+
         # map from the client sockets to the buffers used
         # for partial messages.  We cannot assume that every
         # recv() gets a complete message -- or only one message!
         #
         self.client2buf = dict()
 
-        if msg_history:
-            self.msg_history = msg_history[:]
-        else:
-            self.msg_history = list()
+        self.msg_history = dict()
 
         self.listener = socket.socket()
         self.listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.listener.bind(sockaddr)
         self.listener.listen()
 
-    def init_new_sock(self, new_sock):
+    def init_new_sock(self, new_sock, board_id):
         """
         Catch up a new sock with the history of messages
         """
 
-        if self.msg_history:
-            for msg in self.msg_history:
-                new_sock.send(msg + SnoodsProtocol.recsep)
+        if board_id not in self.msg_history:
+            self.msg_history[board_id] = list()
 
-    def relay_msgs(self, msgs):
+        for msg in self.msg_history[board_id]:
+            new_sock.send(msg + SnoodsProtocol.recsep)
+
+    def relay_msgs(self, board_id, msgs):
         """
         Send all the msgs to all of the current clients
         """
 
+        all_clients = self.boardid2clients[board_id]
+
         for msg in msgs:
-            for sock in self.all_clients:
+            for sock in all_clients:
                 try:
                     # print('sending [%s]' % str(msg))
                     sock.send(msg + SnoodsProtocol.recsep)
@@ -100,20 +105,27 @@ class SnoodsServer(threading.Thread):
 
     def run(self):
 
+        all_clients = self.all_clients
+        # all_clients = self.boardid2client[board_id]
+
         while True:
-            msgs_to_relay = list()
+            all_msgs = dict()
 
-            r_in = list([self.listener]) + list(self.all_clients)
+            r_in = list([self.listener]) + list(all_clients)
             w_in = list()
-            x_in = list(self.all_clients)
+            x_in = list(all_clients)
 
-            r_out, _w_out, x_out = select.select(r_in, w_in, x_in, 1)
+            r_out, _w_out, x_out = select.select(r_in, w_in, x_in, 0.1)
 
             for sock in r_out:
                 if sock == self.listener:
+                    board_id = 'default'
+
                     new_sock, _conn_addr = self.listener.accept()
-                    self.init_new_sock(new_sock)
+                    self.init_new_sock(new_sock, board_id)
+                    self.boardid2clients[board_id].add(new_sock)
                     self.all_clients.add(new_sock)
+                    self.sock2board[new_sock] = board_id
                     self.client2buf[new_sock] = b''
                 else:
                     try:
@@ -127,25 +139,44 @@ class SnoodsServer(threading.Thread):
 
                         msgs, remainder = SnoodsProtocol.split_buf(
                                 self.client2buf[sock])
+
                         self.client2buf[sock] = remainder
-                        msgs_to_relay += msgs
+
+                        board_id = self.sock2board[sock]
+                        if board_id not in all_msgs:
+                            all_msgs[board_id] = list()
+
+                        for msg in msgs:
+                            cmd = SnoodsProtocol.parse_msg(msg)
+                            print('cmd is %s' % cmd['command'])
+                            if cmd['command'] == '<join':
+                                new_board_id = cmd['board_id']
+                                print('board_id is %s' % new_board_id)
+                                self.sock2board[sock] = new_board_id
+
+                                if new_board_id not in self.boardid2clients:
+                                    self.boardid2clients[new_board_id] = set()
+
+                                self.boardid2clients[new_board_id].add(sock)
+                            else:
+                                all_msgs[board_id].append(msg)
                     else:
                         self.all_clients.remove(sock)
                         self.client2buf[sock] = b''
 
             for sock in x_out:
-                if sock == self.listener:
-                    print('listener exceptional: ' + str(sock))
-                else:
-                    print('client exceptional: ' + str(sock))
+                print('client exceptional: ' + str(sock))
 
-            # relay all of the messages that we just received
-            # to all of the current clients
-            #
-            self.relay_msgs(msgs_to_relay)
+            for board_id in all_msgs:
+                # relay all of the messages for this board
+                # to all of the current clients of this board
+                #
+                self.relay_msgs(board_id, all_msgs[board_id])
 
-            # append the new messages to the message history,
-            # for the benefit of future clients
-            #
-            for msg in msgs_to_relay:
-                self.msg_history.append(msg)
+                # append the new messages to the message history,
+                # for the benefit of future clients
+                #
+                if board_id not in self.msg_history:
+                    self.msg_history[board_id] = list()
+
+                self.msg_history[board_id] += all_msgs[board_id]
