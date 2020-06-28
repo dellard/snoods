@@ -56,6 +56,9 @@ class SnoodsClient(threading.Thread):
 
         self.wire = SnoodsProtocol(sock)
 
+        self.board_id = board_id
+        self.curr_board_id = None
+
         if board_id:
             self.wire.push_join(board_id)
 
@@ -81,6 +84,16 @@ class SnoodsClient(threading.Thread):
         # print('new msg %s' % str(msg))
 
         cmd = msg['command']
+
+        if cmd == '<join':
+            self.curr_board_id = msg['board_id']
+
+        # If we haven't gotten the response saying
+        # that we've joined the board we want, then
+        # ignore any messages that come through
+        #
+        if self.board_id != self.curr_board_id:
+            return
 
         if cmd == '<colupd':
             self.drawable.apply_colupd(**msg)
