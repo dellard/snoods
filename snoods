@@ -55,7 +55,7 @@ class Snoods(object):
         if args.server:
             self.server(args.port, args.msg_file)
         else:
-            self.client(args.port)
+            self.client(args.port, args.board_id)
 
     def parse_args(self, argv):
         """
@@ -64,9 +64,14 @@ class Snoods(object):
 
         def_port = 6540
         def_msg_file = None
+        def_board_id = 'default'
 
         parser = argparse.ArgumentParser(
                 description='Run snoods (client or server)')
+
+        parser.add_argument(
+                '-b', '--board_id', default=def_board_id, type=str,
+                help='Board to attach to [default=%s]' % def_board_id)
 
         parser.add_argument(
                 '-S', '--server', default=False, action='store_true',
@@ -94,22 +99,22 @@ class Snoods(object):
         """
 
         if msg_fname:
-            msg_history = SnoodsProtocol.msgs_from_file(msg_fname)
-            print(msg_history)
+            print('msg_fname is not supported right now')
+            # msg_history = SnoodsProtocol.msgs_from_file(msg_fname)
+            # print(msg_history)
         else:
             msg_history = list()
 
-        server = SnoodsServer(
-                ('127.0.0.1', listen_port), msg_history=msg_history)
+        server = SnoodsServer(('127.0.0.1', listen_port))
         server.start()
         server.join()
 
-    def client(self, connect_port):
+    def client(self, connect_port, board_id):
         """
         Run the snoods client
         """
 
-        client = SnoodsClient(('127.0.0.1', connect_port))
+        client = SnoodsClient(('127.0.0.1', connect_port), board_id)
         client.start()
 
         client.drawable.main()
