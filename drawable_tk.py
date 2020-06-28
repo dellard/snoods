@@ -218,6 +218,7 @@ class SnoodsDrawableTk(object):
         self.line_width = 3
 
         self.win = tk.Tk()
+        self.win.title('snoods')
         self.frame = tk.Frame(self.win)
 
         def exit_callback():
@@ -677,6 +678,7 @@ class SnoodsDrawableTk(object):
         """
 
         self.canvas.delete('all')
+        self.win.title('snoods - %s' % board_id)
 
     def apply_erase(self, command, viob_id):
         """
