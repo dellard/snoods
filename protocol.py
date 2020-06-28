@@ -202,8 +202,6 @@ class SnoodsProtocol(object):
             msg['command'] = fields[0]
             msg['board_id'] = SnoodsProtocol.unescape_str(fields[1])
 
-            print('joining %s' % fields[1])
-
         # print(str(msg))
         return msg
 
@@ -215,7 +213,6 @@ class SnoodsProtocol(object):
 
         msg = msg.encode('utf-8')
         self.sock.send(msg + SnoodsProtocol.recsep)
-        print('asked to join %s' % e_board_id)
 
     def push_erase(self, viob_id):
         """ Push an erase message """
