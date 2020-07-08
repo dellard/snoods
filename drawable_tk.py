@@ -200,7 +200,14 @@ class SnoodsDrawableTk(object):
             10, 12, 15, 18, 24, 28
             ]
 
-    def __init__(self, viobc=None, client=None):
+    def __init__(self, viobc=None, client=None, width=0, height=0):
+
+        # These should be tied to the actual defaults
+        # FIXME this is bogus
+        if width <= 0:
+            width = 1200
+        if height <= 0:
+            height = 900
 
         self.viobc = viobc
         self.client = client
@@ -239,7 +246,7 @@ class SnoodsDrawableTk(object):
         # TODO figure out how to dynamically resize
 
         self.canvas = tk.Canvas(
-                self.frame, width=1200, height=900, background='white')
+                self.frame, width=width, height=height, background='white')
         self.canvas.pack(expand=1, fill=tk.BOTH)
         self.canvas.update()
 

@@ -47,7 +47,8 @@ class SnoodsClient(threading.Thread):
     Create a basic client, with a drawable UI
     """
 
-    def __init__(self, sockaddr, board_id='default'):
+    def __init__(
+            self, sockaddr, width, height, board_id='default'):
         threading.Thread.__init__(self)
 
         sock = socket.socket()
@@ -64,7 +65,8 @@ class SnoodsClient(threading.Thread):
             self.wire.push_join(board_id)
 
         self.drawable = SnoodsDrawableTk(
-                viobc=self.wire, client=self)
+                viobc=self.wire, client=self,
+                width=width, height=height)
         self.do_run = True
 
         # At some point later, you need to start the UI, via:

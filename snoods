@@ -55,7 +55,9 @@ class Snoods(object):
         if args.server:
             self.server(args.port, args.msg_file)
         else:
-            self.client(args.port, args.board_id)
+            self.client(
+                    args.port, args.board_id,
+                    args.drawing_width, args.drawing_height)
 
     def parse_args(self, argv):
         """
@@ -65,6 +67,8 @@ class Snoods(object):
         def_port = 6540
         def_msg_file = None
         def_board_id = 'default'
+        def_width = 1200
+        def_height = 900
 
         parser = argparse.ArgumentParser(
                 description='Run snoods (client or server)')
@@ -84,6 +88,14 @@ class Snoods(object):
         parser.add_argument(
                 '-m', '--msg_file', default=None,
                 help='File of initial messages [default=%s]' % def_msg_file)
+
+        parser.add_argument(
+                '--drawing_width', default=def_width, type=int,
+                help='Width of drawing area [default=%d]' % def_width)
+
+        parser.add_argument(
+                '--drawing_height', default=def_height, type=int,
+                help='Height of drawing area [default=%d]' % def_height)
 
         args = parser.parse_args(argv[1:])
 
@@ -109,12 +121,13 @@ class Snoods(object):
         server.start()
         server.join()
 
-    def client(self, connect_port, board_id):
+    def client(self, connect_port, board_id, width, height):
         """
         Run the snoods client
         """
 
-        client = SnoodsClient(('127.0.0.1', connect_port), board_id)
+        client = SnoodsClient(
+                ('127.0.0.1', connect_port), width, height, board_id)
         client.start()
 
         client.drawable.main()
