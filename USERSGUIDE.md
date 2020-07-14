@@ -12,7 +12,17 @@ If the server is $SERVERNAME:
     ssh -L 6540:localhost:6540 $SERVERNAME
 
 This opens an SSH connection to $SERVERNAME and tunnels port 6540 (the
-default snoods port) to the same port on $SERVERNAME
+default snoods port) to the same port on $SERVERNAME.  Leave this
+ssh connection running while you run snoods.
+
+## Starting snoods
+
+To run snoods and connect to whiteboard $WHITEBOARD:
+
+    snoods -b $WHITEBOARD
+
+The client should start, and your view of the whiteboard should be
+updated with the current contents.
 
 ## Control buttons
 
@@ -68,3 +78,7 @@ you want it to be.
 
 To clear the text area, press the "Clear" button.
 
+---
+Copyright 2020 - Daniel Ellard <ellard@gmail.com>
+
+See LICENSE.txt for license information.

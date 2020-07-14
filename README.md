@@ -45,7 +45,6 @@ and clone the repo or untar a release tarball there.
 See [the users guide](USERSGUIDE.md) for information on how
 to use the __snoods__ client.
 
-
 ---
 Copyright 2020 - Daniel Ellard <ellard@gmail.com>
 
